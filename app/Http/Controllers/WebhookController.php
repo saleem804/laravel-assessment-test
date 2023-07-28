@@ -6,7 +6,7 @@ use App\Services\AffiliateService;
 use App\Services\OrderService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-
+use Illuminate\Support\Facades\Log; 
 class WebhookController extends Controller
 {
     public function __construct(
@@ -22,5 +22,7 @@ class WebhookController extends Controller
     public function __invoke(Request $request): JsonResponse
     {
         // TODO: Complete this method
+        $order = $this->orderService->processOrder($request->all());
+        return response()->json($order);
     }
 }

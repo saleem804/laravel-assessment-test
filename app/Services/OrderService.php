@@ -11,7 +11,8 @@ class OrderService
 {
     public function __construct(
         protected AffiliateService $affiliateService
-    ) {}
+    ) {
+    }
 
     /**
      * Process an order and log any commissions.
@@ -24,5 +25,20 @@ class OrderService
     public function processOrder(array $data)
     {
         // TODO: Complete this method
+        $merchant = Merchant::where('domain', $data['merchant_domain'])->first();
+        $affiliate = $this->affiliateService->register($merchant, $data['customer_email'], $data['customer_name'], $merchant->default_commission_rate);
+        $order = Order::where('external_order_id', $data['order_id'])->first();
+        $get_aff = Affiliate::latest()->first();
+        
+        if (!$order && $merchant && $affiliate) {
+            $order = new Order;
+            $order->external_order_id = $data['order_id'];
+            $order->merchant_id = $merchant->id;
+            $order->affiliate_id = $get_aff->id;
+            $order->subtotal = $data['subtotal_price'];
+            $order->commission_owed = $get_aff->commission_rate * $data['subtotal_price'];
+            $order->save();
+        }
+        return $order;
     }
 }
